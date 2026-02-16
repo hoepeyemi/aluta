@@ -2,59 +2,59 @@ import { ThirdwebClient } from "thirdweb";
 import { ethers } from "ethers";
 import axios from "axios";
 
-// Network Constants
-export const CRONOS_TESTNET = {
-  id: 338,
-  name: 'Cronos Testnet',
+// Network Constants - Hedera Testnet / Mainnet
+export const HEDERA_TESTNET = {
+  id: 296,
+  name: 'Hedera Testnet',
   nativeCurrency: {
-    name: 'CRO',
-    symbol: 'CRO',
+    name: 'HBAR',
+    symbol: 'HBAR',
     decimals: 18,
   },
-  rpc: 'https://evm-t3.cronos.org',
+  rpc: 'https://testnet.hashio.io/api',
   rpcUrls: {
     default: {
-      http: ['https://evm-t3.cronos.org'],
+      http: ['https://testnet.hashio.io/api'],
     },
     public: {
-      http: ['https://evm-t3.cronos.org'],
+      http: ['https://testnet.hashio.io/api'],
     },
   },
   blockExplorers: [{
-    name: 'Cronos Testnet Explorer',
-    url: 'https://explorer.cronos.org/testnet',
+    name: 'HashScan Testnet',
+    url: 'https://hashscan.io/testnet',
   }],
 };
 
-export const CRONOS_MAINNET = {
-  id: 25,
-  name: 'Cronos Mainnet',
+export const HEDERA_MAINNET = {
+  id: 295,
+  name: 'Hedera Mainnet',
   nativeCurrency: {
-    name: 'CRO',
-    symbol: 'CRO',
+    name: 'HBAR',
+    symbol: 'HBAR',
     decimals: 18,
   },
-  rpc: 'https://evm.cronos.org',
+  rpc: 'https://mainnet.hashio.io/api',
   rpcUrls: {
     default: {
-      http: ['https://evm.cronos.org'],
+      http: ['https://mainnet.hashio.io/api'],
     },
     public: {
-      http: ['https://evm.cronos.org'],
+      http: ['https://mainnet.hashio.io/api'],
     },
   },
   blockExplorers: [{
-    name: 'Cronos Explorer',
-    url: 'https://explorer.cronos.org',
+    name: 'HashScan',
+    url: 'https://hashscan.io',
   }],
 };
 
-// Token Contracts
-export const USDC_TESTNET = '0xc01efAaF7C5C61bEbFAeb358E1161b537b8bC0e0';
-export const USDC_MAINNET = '0xf951eC28187D9E5Ca673Da8FE6757E6f0Be5F77C';
+// Token Contracts (set USDC address for Hedera testnet via VITE_USDC_TESTNET env or use placeholder)
+export const USDC_TESTNET = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_USDC_TESTNET) || '0x0000000000000000000000000000000000000000';
+export const USDC_MAINNET = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_USDC_MAINNET) || '0x0000000000000000000000000000000000000000';
 
-// Facilitator URL
-export const FACILITATOR_URL = 'https://facilitator.cronoslabs.org/v2/x402';
+// Facilitator URL (set VITE_FACILITATOR_URL for your Hedera x402 facilitator if applicable)
+export const FACILITATOR_URL = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_FACILITATOR_URL) || '';
 
 // EIP-712 Domain for USDC (default - actual domain is queried from contract)
 // Note: We're using USDC.e (not USDX), so the domain is typically "USD Coin"
@@ -127,9 +127,9 @@ export interface SettleResponse {
  * Handles payment header generation, verification, and settlement
  */
 export class X402PaymentService {
-  private network: 'cronos-testnet' | 'cronos-mainnet';
+  private network: 'hedera-testnet' | 'hedera-mainnet';
 
-  constructor(_client: ThirdwebClient, network: 'cronos-testnet' | 'cronos-mainnet' = 'cronos-testnet') {
+  constructor(_client: ThirdwebClient, network: 'hedera-testnet' | 'hedera-mainnet' = 'hedera-testnet') {
     // Client is kept for potential future use
     this.network = network;
   }
@@ -151,9 +151,9 @@ export class X402PaymentService {
    * Tries multiple methods to get the domain name
    */
   private async getTokenDomain(asset: string): Promise<{ name: string; version: string } | null> {
-    const rpcUrl = this.network === 'cronos-testnet' 
-      ? 'https://evm-t3.cronos.org' 
-      : 'https://evm.cronos.org';
+    const rpcUrl = this.network === 'hedera-testnet' 
+      ? 'https://testnet.hashio.io/api' 
+      : 'https://mainnet.hashio.io/api';
     
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     
@@ -229,7 +229,7 @@ export class X402PaymentService {
     const validBefore = Math.floor(Date.now() / 1000) + maxTimeoutSeconds;
 
     // Get chain ID as number (required for EIP-712)
-    const chainId = this.network === 'cronos-testnet' ? 338 : 25;
+    const chainId = this.network === 'hedera-testnet' ? 296 : 295;
 
     // Try to get the actual domain from the contract, fallback to common values
     // For USDC.e (0xc01efAaF7C5C61bEbFAeb358E1161b537b8bC0e0), the domain is typically "USD Coin"
@@ -257,7 +257,7 @@ export class X402PaymentService {
     }
     
     console.log('Using EIP-712 domain name:', domainName, 'version:', domainVersion);
-    console.log('Token contract:', asset, '(USDC.e on Cronos testnet)');
+    console.log('Token contract:', asset, '(USDC on Hedera testnet)');
 
     // Set up EIP-712 domain
     // The domain name must match the token contract's EIP-712 domain exactly
@@ -454,10 +454,10 @@ export class X402PaymentService {
     types: any,
     message: any
   ): Promise<string> {
-    // Create provider for Cronos
-    const rpcUrl = this.network === 'cronos-testnet' 
-      ? 'https://evm-t3.cronos.org' 
-      : 'https://evm.cronos.org';
+    // Create provider for Hedera
+    const rpcUrl = this.network === 'hedera-testnet' 
+      ? 'https://testnet.hashio.io/api' 
+      : 'https://mainnet.hashio.io/api';
     
     try {
       // Priority 1: Use MetaMask specifically (not Phantom or other Solana wallets)
@@ -472,7 +472,7 @@ export class X402PaymentService {
           
           // Check if we're on the correct network
           const network = await ethersProvider.getNetwork();
-          const expectedChainId = this.network === 'cronos-testnet' ? 338n : 25n;
+          const expectedChainId = this.network === 'hedera-testnet' ? 296n : 295n;
           if (network.chainId !== expectedChainId) {
             console.warn(`Network mismatch: expected ${expectedChainId}, got ${network.chainId}`);
             // Try to switch network
@@ -484,20 +484,20 @@ export class X402PaymentService {
             } catch (switchError: any) {
               if (switchError.code === 4902) {
                 // Chain not added, try to add it
-                const chainConfig = this.network === 'cronos-testnet' 
+                const chainConfig = this.network === 'hedera-testnet' 
                   ? {
                       chainId: `0x${expectedChainId.toString(16)}`,
-                      chainName: 'Cronos Testnet',
-                      nativeCurrency: { name: 'CRO', symbol: 'CRO', decimals: 18 },
-                      rpcUrls: ['https://evm-t3.cronos.org'],
-                      blockExplorerUrls: ['https://explorer.cronos.org/testnet'],
+                      chainName: 'Hedera Testnet',
+                      nativeCurrency: { name: 'HBAR', symbol: 'HBAR', decimals: 18 },
+                      rpcUrls: ['https://testnet.hashio.io/api'],
+                      blockExplorerUrls: ['https://hashscan.io/testnet'],
                     }
                   : {
                       chainId: `0x${expectedChainId.toString(16)}`,
-                      chainName: 'Cronos Mainnet',
-                      nativeCurrency: { name: 'CRO', symbol: 'CRO', decimals: 18 },
-                      rpcUrls: ['https://evm.cronos.org'],
-                      blockExplorerUrls: ['https://explorer.cronos.org'],
+                      chainName: 'Hedera Mainnet',
+                      nativeCurrency: { name: 'HBAR', symbol: 'HBAR', decimals: 18 },
+                      rpcUrls: ['https://mainnet.hashio.io/api'],
+                      blockExplorerUrls: ['https://hashscan.io'],
                     };
                 await provider.request({
                   method: 'wallet_addEthereumChain',
@@ -705,7 +705,7 @@ export class X402PaymentService {
    */
   async healthCheck(): Promise<any> {
     try {
-      const response = await axios.get('https://facilitator.cronoslabs.org/healthcheck');
+      const response = FACILITATOR_URL ? await axios.get(`${FACILITATOR_URL.replace(/\/$/, '')}/healthcheck`) : { data: { status: 'no_facilitator' } };
       return response.data;
     } catch (error) {
       console.error('Health check error:', error);
@@ -747,11 +747,11 @@ export class X402PaymentService {
       // Try common domain name variations for USDC contracts
       const alternativeDomains = [
         "USD Coin",
-        "USDX Coin", 
-        "USD Coin (Cronos)",
+        "USDX Coin",
+        "USD Coin (Hedera)",
         "USDC",
         "USDC.e",
-        "USD Coin on Cronos"
+        "USD Coin on Hedera"
       ];
       
       for (const altDomain of alternativeDomains) {
@@ -795,7 +795,7 @@ export class X402PaymentService {
  */
 export function createX402PaymentService(
   client: ThirdwebClient,
-  network: 'cronos-testnet' | 'cronos-mainnet' = 'cronos-testnet'
+  network: 'hedera-testnet' | 'hedera-mainnet' = 'hedera-testnet'
 ): X402PaymentService {
   return new X402PaymentService(client, network);
 }

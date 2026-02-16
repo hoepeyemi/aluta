@@ -1,6 +1,6 @@
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 import { getContract } from "thirdweb";
-import { CRONOS_TESTNET, USDC_TESTNET } from "../services/x402PaymentService";
+import { HEDERA_TESTNET, USDC_TESTNET } from "../services/x402PaymentService";
 import { formatUnits } from "viem";
 
 interface USDCBalanceProps {
@@ -13,7 +13,7 @@ export default function USDCBalance({ client }: USDCBalanceProps) {
   // Get USDC contract - always call getContract, even if account is null
   const usdcContract = getContract({
     address: USDC_TESTNET as `0x${string}`,
-    chain: CRONOS_TESTNET,
+    chain: HEDERA_TESTNET,
     client: client,
   });
 

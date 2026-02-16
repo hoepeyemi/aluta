@@ -389,7 +389,7 @@ export default function RevenueAnalytics() {
                                 </td>
                                 <td>
                                   <a
-                                    href={`https://explorer.cronos.org/testnet/tx/${receipt.transactionHash}`}
+                                    href={`https://hashscan.io/testnet/tx/${receipt.transactionHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="tx-link"
@@ -440,7 +440,7 @@ export default function RevenueAnalytics() {
                                 </td>
                                 <td>
                                   <a
-                                    href={`https://explorer.cronos.org/testnet/tx/${receipt.transactionHash}`}
+                                    href={`https://hashscan.io/testnet/tx/${receipt.transactionHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="tx-link"

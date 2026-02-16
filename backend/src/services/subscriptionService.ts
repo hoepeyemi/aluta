@@ -290,7 +290,7 @@ export class SubscriptionService {
     subscriptionId: string,
     amount: number,
     transactionHash: string,
-    network: string = 'cronos-testnet',
+    network: string = 'hedera-testnet',
     status: string = 'completed',
     errorMessage?: string
   ) {

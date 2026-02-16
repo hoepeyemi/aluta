@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Froxy subscription system is a comprehensive crypto-based subscription management platform built on the Cronos blockchain. It enables users to create, manage, and automate payments for recurring services using USDC stablecoin through the x402 payment protocol.
+The Froxy subscription system is a comprehensive crypto-based subscription management platform built on the Hedera blockchain. It enables users to create, manage, and automate payments for recurring services using USDC stablecoin through the x402 payment protocol.
 
 ## Architecture
 
@@ -62,7 +62,7 @@ model Payment {
   subscriptionId   String
   amount            Decimal   @db.Decimal(18, 6) // Amount paid in USDC
   transactionHash  String   @unique
-  network           String   @default("cronos-testnet")
+  network           String   @default("hedera-testnet")
   status            String   @default("completed") // completed, failed, pending
   errorMessage      String?
   timestamp         DateTime @default(now())
@@ -292,7 +292,7 @@ REDIS_HOST=host
 REDIS_PORT=port
 
 # x402 Configuration
-FACILITATOR_URL=https://facilitator.cronoslabs.org/v2/x402
+FACILITATOR_URL=<your-hedera-x402-facilitator-url-if-applicable>
 USDC_MINT_TESTNET=0xc01efAaF7C5C61bEbFAeb358E1161b537b8bC0e0
 ```
 
@@ -330,7 +330,7 @@ VITE_API_URL=http://localhost:5000/api
 - PostgreSQL database
 - Redis server
 - Node.js 18+
-- Cronos testnet access
+- Hedera testnet access
 
 ### Setup Steps
 1. Configure environment variables

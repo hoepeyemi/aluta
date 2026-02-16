@@ -34,8 +34,8 @@ PORT=5000
 # Optional: Wallet Configuration (for contract interactions)
 # WALLET_PRIVATE_KEY=0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
 
-# Optional: RPC Configuration (Cronos Testnet)
-# RPC_PROVIDER_URL=https://evm-t3.cronos.org
+# Optional: RPC Configuration (Hedera Testnet)
+# RPC_PROVIDER_URL=https://testnet.hashio.io/api
 
 # Optional: Pinata IPFS Configuration
 # PINATA_JWT=
@@ -43,7 +43,7 @@ PORT=5000
 # Optional: Yakoa API Configuration
 # YAKOA_API_KEY=
 # YAKOA_SUBDOMAIN=
-# YAKOA_NETWORK=cronos_testnet
+# YAKOA_NETWORK=hedera_testnet
 
 # Optional: NFT Contract Configuration
 # NFT_CONTRACT_ADDRESS=0x0000000000000000000000000000000000000000
@@ -80,11 +80,11 @@ If `REDIS_URL` is not set in `.env`, the system will use:
 
 ## Network Configuration
 
-- **Network**: Cronos Testnet
-- **Chain ID**: 338
-- **RPC URL**: https://evm-t3.cronos.org
-- **Explorer**: https://explorer.cronos.org/testnet
-- **Native Token**: CRO
+- **Network**: Hedera Testnet
+- **Chain ID**: 296
+- **RPC URL**: https://testnet.hashio.io/api
+- **Explorer**: https://hashscan.io/testnet
+- **Native Token**: HBAR
 
 ## To Get Your Real Credentials
 

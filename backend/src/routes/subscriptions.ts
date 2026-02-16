@@ -122,7 +122,7 @@ router.post('/:id/payments', async (req, res) => {
       id,
       amount,
       transactionHash,
-      network || 'cronos-testnet',
+      network || 'hedera-testnet',
       status || 'completed',
       errorMessage
     );

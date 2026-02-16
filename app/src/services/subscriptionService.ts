@@ -75,7 +75,7 @@ export class SubscriptionAgent {
   private userAddress: string | null = null;
 
   constructor(client: ThirdwebClient) {
-    this.x402Service = createX402PaymentService(client, 'cronos-testnet');
+    this.x402Service = createX402PaymentService(client, 'hedera-testnet');
   }
 
   /**
@@ -236,7 +236,7 @@ export class SubscriptionAgent {
       // Create payment requirements for x402
       const paymentRequirements: PaymentRequirements = {
         scheme: 'exact',
-        network: 'cronos-testnet',
+        network: 'hedera-testnet',
         payTo: subscription.recipientAddress,
         asset: USDC_TESTNET,
         maxAmountRequired: amountInBaseUnits,
@@ -261,7 +261,7 @@ export class SubscriptionAgent {
           subscription.id,
           subscription.cost,
           settleResult.txHash || '',
-          'cronos-testnet',
+          'hedera-testnet',
           'completed'
         );
       } catch (error) {

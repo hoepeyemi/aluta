@@ -50,10 +50,10 @@ export default function PaymentHistoryItem({ payment, serviceName }: PaymentHist
   };
 
   const getExplorerUrl = (hash: string, network: string) => {
-    if (network.includes('cronos')) {
-      return `https://explorer.cronos.org/testnet/tx/${hash}`;
+    if (network.includes('hedera')) {
+      return `https://hashscan.io/testnet/tx/${hash}`;
     }
-    return `https://explorer.cronos.org/tx/${hash}`;
+    return `https://hashscan.io/tx/${hash}`;
   };
 
   const dateInfo = formatDate(payment.timestamp);

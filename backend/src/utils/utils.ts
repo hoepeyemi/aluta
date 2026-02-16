@@ -4,7 +4,7 @@ import { networkInfo, NATIVE_TOKEN_ADDRESS } from './config'
 
 dotenv.config()
 
-// Use native CRO token as WIP_TOKEN_ADDRESS
+// Use native HBAR as WIP_TOKEN_ADDRESS
 export const WIP_TOKEN_ADDRESS: Address = NATIVE_TOKEN_ADDRESS
 
 // Export contract addresses with appropriate defaults based on network
@@ -54,11 +54,11 @@ export const NonCommercialSocialRemixingTerms: LicenseTerms = {
     uri: 'https://github.com/piplabs/pil-document/blob/998c13e6ee1d04eb817aefd1fe16dfe8be3cd7a2/off-chain-terms/NCSR.json',
 }
 
-// Royalty policy addresses for Cronos
+// Royalty policy addresses for Hedera
 export const RoyaltyPolicyLAP: Address = '0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E'
 export const RoyaltyPolicyLRP: Address = '0x9156e603C949481883B1d3355c6f1132D191fC41'
 
-// Commercial remix terms for Cronos
+// Commercial remix terms for Hedera
 export function createCommercialRemixTerms(terms: { commercialRevShare: number; defaultMintingFee: number }): LicenseTerms {
     return {
         transferable: true,
@@ -81,7 +81,7 @@ export function createCommercialRemixTerms(terms: { commercialRevShare: number; 
     }
 }
 
-// Licensing configuration for Cronos
+// Licensing configuration for Hedera
 export interface LicensingConfig {
     mintingFee: bigint
     isSet: boolean
@@ -109,12 +109,12 @@ export function convertRoyaltyPercentToTokens(royaltyPercent: number): number {
     return royaltyPercent * 1_000_000
 }
 
-// Cronos-specific utility functions
-export function getCronosExplorerUrl(txHash: string): string {
+// Hedera-specific utility functions
+export function getHederaExplorerUrl(txHash: string): string {
     return `${networkInfo.blockExplorer}/tx/${txHash}`
 }
 
-export function getCronosAddressExplorerUrl(address: string): string {
+export function getHederaAddressExplorerUrl(address: string): string {
     return `${networkInfo.blockExplorer}/address/${address}`
 }
 

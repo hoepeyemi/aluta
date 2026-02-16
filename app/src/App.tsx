@@ -12,7 +12,7 @@ import {
 } from "thirdweb";
 import { ConnectButton } from "thirdweb/react";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
-import { CRONOS_TESTNET } from "./services/x402PaymentService";
+import { HEDERA_TESTNET } from "./services/x402PaymentService";
 import { createSubscriptionAgent, SubscriptionAgent } from "./services/subscriptionService";
 
 
@@ -60,7 +60,7 @@ export default function App({ thirdwebClient }: AppProps) {
             <ConnectButton
               client={thirdwebClient}
               wallets={wallets}
-              chain={CRONOS_TESTNET}
+              chain={HEDERA_TESTNET}
             />
           </div>
         </div>
