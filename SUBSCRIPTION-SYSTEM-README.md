@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Froxy subscription system is a comprehensive crypto-based subscription management platform built on the Hedera blockchain. It enables users to create, manage, and automate payments for recurring services using USDC stablecoin through the x402 payment protocol.
+The Aluta subscription system is a comprehensive crypto-based subscription management platform built on the Hedera blockchain. It enables users to create, manage, and automate payments for recurring services using USDC stablecoin through the x402 payment protocol.
 
 ## Architecture
 
@@ -393,4 +393,4 @@ When contributing to the subscription system:
 
 ## License
 
-This subscription system is part of the Froxy project and follows the project's licensing terms.
+This subscription system is part of the Aluta project and follows the project's licensing terms.
