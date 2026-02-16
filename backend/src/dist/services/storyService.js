@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mintLicenseOnEtherlink = exports.registerIpWithEtherlink = void 0;
 const config_1 = require("../utils/config");
-// SeekerIP contract ABI (simplified for IP registration)
+// Aluta IP contract ABI (simplified for IP registration)
 const MODRED_IP_ABI = [
     {
         "inputs": [
@@ -78,7 +78,7 @@ const registerIpWithEtherlink = async (ipHash, metadata, isEncrypted, SeekerIPCo
         console.log('ipHash:', ipHash);
         console.log('metadata:', metadata);
         console.log('isEncrypted:', isEncrypted);
-        // Register IP on SeekerIP contract
+        // Register IP on Aluta contract
         const { request } = await config_1.publicClient.simulateContract({
             address: SeekerIPContractAddress,
             abi: MODRED_IP_ABI,

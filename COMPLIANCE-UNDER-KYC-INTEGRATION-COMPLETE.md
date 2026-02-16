@@ -86,7 +86,7 @@ The Compliance & Regulatory Management has been successfully moved under the KYC
 ## 🚀 **How to Use**
 
 ### **1. Access Compliance Management**
-1. Open SeekerIP frontend
+1. Open Aluta frontend
 2. Click "🔐 KYC Management" tab
 3. Scroll down to "🏛️ Compliance & Regulatory Management" section
 

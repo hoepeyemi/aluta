@@ -15,7 +15,7 @@ const handleRegistration = async (req, res) => {
                 error: 'Missing required parameters: ipHash, metadata, isEncrypted, SeekerIPContractAddress'
             });
         }
-        // 1. Register on Etherlink using SeekerIP contract
+        // 1. Register on Etherlink using Aluta contract
         const { txHash, ipAssetId, blockNumber, explorerUrl } = await (0, storyService_1.registerIpWithEtherlink)(ipHash, metadata, isEncrypted, SeekerIPContractAddress);
         console.log("✅ Etherlink registration successful:", {
             txHash,
@@ -96,7 +96,7 @@ const handleRegistration = async (req, res) => {
                     brand_name: null,
                     data: {
                         type: 'email',
-                        email_address: parsedMetadata.creator_email || 'creator@SeekerIP.com'
+                        email_address: parsedMetadata.creator_email || 'creator@aluta.com'
                     }
                 }
             ];
@@ -109,7 +109,7 @@ const handleRegistration = async (req, res) => {
                 media: yakoaMedia,
                 brandId: null,
                 brandName: null,
-                emailAddress: parsedMetadata.creator_email || 'creator@SeekerIP.com',
+                emailAddress: parsedMetadata.creator_email || 'creator@aluta.com',
                 licenseParents: [],
                 authorizations: authorizations,
             });

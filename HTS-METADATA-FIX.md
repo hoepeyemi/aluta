@@ -25,7 +25,7 @@ The frontend was creating a comprehensive metadata object with many fields:
   "license_type": "all_rights_reserved",
   "commercial_use": false,
   "derivatives_allowed": false,
-  "creator_email": "creator@seekerip.com",
+  "creator_email": "creator@aluta.com",
   "file_name": "seeker_icon.jpg",
   "file_extension": "jpg",
   "upload_timestamp": "2025-10-20T19:15:08.744Z",

@@ -1,7 +1,7 @@
 # HTS KYC Frontend Integration Guide
 
 ## Overview
-This guide explains how the HTS KYC (Hedera Token Service Know Your Customer) functionality has been integrated into the SeekerIP frontend application.
+This guide explains how the HTS KYC (Hedera Token Service Know Your Customer) functionality has been integrated into the Aluta frontend application.
 
 ## Features Implemented
 
@@ -173,5 +173,5 @@ For technical support or questions about the KYC integration:
 
 ## Conclusion
 
-The HTS KYC integration provides a comprehensive solution for managing Know Your Customer requirements in the SeekerIP application. It offers both user-friendly interfaces and powerful management capabilities for contract owners, ensuring compliance while maintaining ease of use.
+The HTS KYC integration provides a comprehensive solution for managing Know Your Customer requirements in the Aluta application. It offers both user-friendly interfaces and powerful management capabilities for contract owners, ensuring compliance while maintaining ease of use.
 

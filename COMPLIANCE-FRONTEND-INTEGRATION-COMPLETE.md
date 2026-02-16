@@ -98,7 +98,7 @@ The compliance and regulatory requirements have been successfully integrated wit
 ## 🚀 **How to Use the Compliance System**
 
 ### **1. Access Compliance Management**
-1. Open the SeekerIP frontend
+1. Open the Aluta frontend
 2. Click on "🏛️ Compliance Management" tab
 3. Connect your wallet (must be compliance officer or owner)
 
@@ -194,5 +194,5 @@ The compliance system is now production-ready with:
 - **Real-time Compliance Verification**
 - **Complete Audit Trail Access**
 
-Users can now manage compliance, verify entities, and maintain regulatory compliance directly through the SeekerIP frontend interface.
+Users can now manage compliance, verify entities, and maintain regulatory compliance directly through the Aluta frontend interface.
 
