@@ -5,7 +5,7 @@ import { NotificationButton } from "./components/NotificationButton";
 import { NotificationToasts } from "./components/NotificationCenter";
 import SubscriptionManager from "./components/SubscriptionManager";
 import RevenueAnalytics from "./pages/RevenueAnalytics";
-import USDCBalance from "./components/USDCBalance";
+import HBARBalance from "./components/HBARBalance";
 
 import {
   ThirdwebClient,
@@ -56,7 +56,7 @@ export default function App({ thirdwebClient }: AppProps) {
           </div>
           <div className="header-actions">
             <NotificationButton />
-            <USDCBalance client={thirdwebClient} />
+            <HBARBalance client={thirdwebClient} />
             <ConnectButton
               client={thirdwebClient}
               wallets={wallets}

@@ -14,12 +14,13 @@ export declare function generateUniqueId(contractAddress: string, tokenId: numbe
  */
 export declare function generateTimestampedId(contractAddress: string, tokenId: number | string): string;
 /**
- * Extract contract address and token ID from a Yakoa ID
- * @param id - The Yakoa ID (format: contract:tokenId or contract:tokenId:timestamp)
+ * Extract contract address and token ID from an ID string
+ * @param id - The ID (format: contract:tokenId or contract:tokenId:timestamp)
  * @returns Object with contract address and token ID
  */
-export declare function parseYakoaId(id: string): {
+export declare function parseId(id: string): {
     contractAddress: string;
     tokenId: string;
 };
+export declare const parseYakoaId: typeof parseId;
 //# sourceMappingURL=idGenerator.d.ts.map

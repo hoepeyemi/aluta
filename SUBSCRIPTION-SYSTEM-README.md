@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Aluta subscription system is a comprehensive crypto-based subscription management platform built on the Hedera blockchain. It enables users to create, manage, and automate payments for recurring services using USDC stablecoin through the x402 payment protocol.
+The Aluta subscription system is a comprehensive crypto-based subscription management platform built on the Hedera blockchain. It enables users to create, manage, and automate payments for recurring services using HBAR (native Hedera token).
 
 ## Architecture
 
@@ -24,7 +24,7 @@ model Service {
   id                String   @id @default(cuid())
   name              String
   description       String?
-  cost              Decimal   @db.Decimal(18, 6) // Cost in USDC (6 decimals)
+  cost              Decimal   @db.Decimal(18, 6) // Cost in HBAR (6 decimals)
   frequency         String   // monthly, weekly, yearly
   recipientAddress  String   // Service provider wallet address
   isActive          Boolean  @default(true)
@@ -40,7 +40,7 @@ model Subscription {
   id                String   @id @default(cuid())
   serviceId         String
   userAddress       String   // User's wallet address
-  cost              Decimal   @db.Decimal(18, 6) // Cost in USDC
+  cost              Decimal   @db.Decimal(18, 6) // Cost in HBAR
   frequency         String   // monthly, weekly, yearly
   recipientAddress  String   // Service provider wallet address
   lastPaymentDate   DateTime?
@@ -60,7 +60,7 @@ model Subscription {
 model Payment {
   id                String   @id @default(cuid())
   subscriptionId   String
-  amount            Decimal   @db.Decimal(18, 6) // Amount paid in USDC
+  amount            Decimal   @db.Decimal(18, 6) // Amount paid in HBAR
   transactionHash  String   @unique
   network           String   @default("hedera-testnet")
   status            String   @default("completed") // completed, failed, pending
@@ -293,7 +293,8 @@ REDIS_PORT=port
 
 # x402 Configuration
 FACILITATOR_URL=<your-hedera-x402-facilitator-url-if-applicable>
-USDC_MINT_TESTNET=0xc01efAaF7C5C61bEbFAeb358E1161b537b8bC0e0
+# Payment asset (optional; native HBAR used on Hedera)
+# PAYMENT_ASSET_TESTNET=0x...
 ```
 
 #### Frontend
@@ -357,7 +358,7 @@ VITE_API_URL=http://localhost:5000/api
    - Validate credentials
 
 2. **Payment Failures**
-   - Check USDC balance
+   - Check HBAR balance
    - Verify wallet connection
    - Review transaction logs
 

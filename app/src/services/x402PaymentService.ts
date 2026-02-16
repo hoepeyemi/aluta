@@ -49,15 +49,17 @@ export const HEDERA_MAINNET = {
   }],
 };
 
-// Token Contracts (set USDC address for Hedera testnet via VITE_USDC_TESTNET env or use placeholder)
-export const USDC_TESTNET = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_USDC_TESTNET) || '0x0000000000000000000000000000000000000000';
-export const USDC_MAINNET = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_USDC_MAINNET) || '0x0000000000000000000000000000000000000000';
+// Token / payment asset (Hedera: native HBAR; set VITE_PAYMENT_ASSET for token address if using ERC-20)
+export const USDC_TESTNET = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_PAYMENT_ASSET) || '0x0000000000000000000000000000000000000000';
+export const USDC_MAINNET = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_PAYMENT_ASSET_MAINNET) || '0x0000000000000000000000000000000000000000';
 
-// Facilitator URL (set VITE_FACILITATOR_URL for your Hedera x402 facilitator if applicable)
+// Facilitator URL (set VITE_FACILITATOR_URL for your Hedera payment facilitator if applicable)
 export const FACILITATOR_URL = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_FACILITATOR_URL) || '';
 
-// EIP-712 Domain for USDC (default - actual domain is queried from contract)
-// Note: We're using USDC.e (not USDX), so the domain is typically "USD Coin"
+// Zero address = native HBAR (no ERC-20 token)
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+// EIP-712 Domain (for token-based payments; native HBAR does not use this)
 export const TOKEN_DOMAIN = {
   name: "USD Coin",
   version: "1",
@@ -232,8 +234,7 @@ export class X402PaymentService {
     const chainId = this.network === 'hedera-testnet' ? 296 : 295;
 
     // Try to get the actual domain from the contract, fallback to common values
-    // For USDC.e (0xc01efAaF7C5C61bEbFAeb358E1161b537b8bC0e0), the domain is typically "USD Coin"
-    // The x402 guide mentions "USDX Coin" for USDX token, but we're using USDC.e
+    // For token-based payments the domain is queried from contract; native HBAR does not use EIP-712
     let domainName: string | undefined;
     let domainVersion: string | undefined;
     
@@ -248,16 +249,16 @@ export class X402PaymentService {
       domainName = contractDomain?.name;
       domainVersion = contractDomain?.version;
       
-      // If contract query failed, use "USD Coin" for USDC.e (standard USDC domain)
+      // If contract query failed, use default domain for token-based payments
       if (!domainName) {
-        console.log('Contract domain query failed, using standard USDC domain: "USD Coin"');
-        domainName = "USD Coin"; // Standard USDC domain (we're using USDC.e, not USDX)
+        console.log('Contract domain query failed, using default token domain');
+        domainName = "USD Coin";
         domainVersion = "1";
       }
     }
     
     console.log('Using EIP-712 domain name:', domainName, 'version:', domainVersion);
-    console.log('Token contract:', asset, '(USDC on Hedera testnet)');
+    console.log('Payment asset:', asset, '(Hedera testnet)');
 
     // Set up EIP-712 domain
     // The domain name must match the token contract's EIP-712 domain exactly
@@ -441,6 +442,89 @@ export class X402PaymentService {
     }
     
     return ethereum;
+  }
+
+  /**
+   * Send native HBAR to an address (no token, no facilitator).
+   * Used when asset is zero address or when no facilitator is configured.
+   */
+  private async sendNativeHBAR(
+    account: any,
+    payTo: string,
+    valueWei: string
+  ): Promise<{ txHash: string }> {
+    const provider = this.getPreferredEVMProvider();
+    if (!provider) {
+      throw new Error('No EVM wallet found. Please install MetaMask or connect an EVM wallet.');
+    }
+    const ethersProvider = new ethers.BrowserProvider(provider);
+    await provider.request({ method: 'eth_requestAccounts' });
+    const network = await ethersProvider.getNetwork();
+    const expectedChainId = this.network === 'hedera-testnet' ? 296n : 295n;
+    if (network.chainId !== expectedChainId) {
+      try {
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: `0x${expectedChainId.toString(16)}` }],
+        });
+      } catch (switchError: any) {
+        if (switchError.code === 4902) {
+          const chainConfig = this.network === 'hedera-testnet'
+            ? {
+                chainId: `0x${expectedChainId.toString(16)}`,
+                chainName: 'Hedera Testnet',
+                nativeCurrency: { name: 'HBAR', symbol: 'HBAR', decimals: 18 },
+                rpcUrls: ['https://testnet.hashio.io/api'],
+                blockExplorerUrls: ['https://hashscan.io/testnet'],
+              }
+            : {
+                chainId: `0x${expectedChainId.toString(16)}`,
+                chainName: 'Hedera Mainnet',
+                nativeCurrency: { name: 'HBAR', symbol: 'HBAR', decimals: 18 },
+                rpcUrls: ['https://mainnet.hashio.io/api'],
+                blockExplorerUrls: ['https://hashscan.io'],
+              };
+          await provider.request({ method: 'wallet_addEthereumChain', params: [chainConfig] });
+        }
+      }
+    }
+    const signer = await ethersProvider.getSigner(account.address);
+    const value = BigInt(valueWei);
+    if (value <= 0n) throw new Error('Payment amount must be greater than 0');
+
+    // On Hedera EVM, direct HBAR transfer to a contract often reverts. Check if recipient has code.
+    const code = await ethersProvider.getCode(payTo as `0x${string}`);
+    if (code && code !== '0x' && code.length > 2) {
+      throw new Error(
+        'Recipient address appears to be a smart contract. On Hedera, direct HBAR transfers to contracts may revert. ' +
+        'Please use a wallet (EOA) address as the subscription recipient.'
+      );
+    }
+
+    // Simple value transfer: use intrinsic gas (21_000) to avoid estimation issues on Hedera
+    const tx = await signer.sendTransaction({
+      to: payTo as `0x${string}`,
+      value,
+      data: '0x',
+      gasLimit: 21_000n,
+    });
+    console.log('Native HBAR tx submitted:', tx.hash);
+    try {
+      await tx.wait();
+      return { txHash: tx.hash };
+    } catch (waitError: any) {
+      const receipt = waitError?.receipt ?? waitError?.transaction?.receipt;
+      const txHash = tx.hash || receipt?.hash;
+      const explorerUrl = this.network === 'hedera-testnet'
+        ? `https://hashscan.io/testnet/transaction/${txHash}`
+        : `https://hashscan.io/transaction/${txHash}`;
+      const msg =
+        (txHash
+          ? `Transaction reverted. View on explorer: ${explorerUrl}. `
+          : 'Transaction reverted. ') +
+        'This can happen if the recipient is a contract that does not accept HBAR, or due to Hedera account/restriction rules. Try using a wallet (EOA) address.';
+      throw new Error(msg);
+    }
   }
 
   /**
@@ -729,12 +813,45 @@ export class X402PaymentService {
 
   /**
    * Complete payment flow: verify and settle
-   * Tries different domain names if verification fails
+   * When paying with native HBAR (asset = zero address or no facilitator), sends HBAR directly.
+   * Otherwise uses x402 token flow (verify + settle).
    */
   async pay(
     account: any,
     paymentRequirements: PaymentRequirements
   ): Promise<SettleResponse> {
+    const isNativeHBAR =
+      paymentRequirements.asset === ZERO_ADDRESS ||
+      paymentRequirements.asset?.toLowerCase() === ZERO_ADDRESS ||
+      !FACILITATOR_URL;
+
+    if (isNativeHBAR) {
+      try {
+        console.log('Paying with native HBAR (direct transfer)');
+        const { txHash } = await this.sendNativeHBAR(
+          account,
+          paymentRequirements.payTo,
+          paymentRequirements.maxAmountRequired
+        );
+        return {
+          x402Version: 1,
+          event: 'payment.settled',
+          network: paymentRequirements.network,
+          timestamp: new Date().toISOString(),
+          txHash,
+        };
+      } catch (error: any) {
+        console.error('Native HBAR payment failed:', error);
+        return {
+          x402Version: 1,
+          event: 'payment.failed',
+          network: paymentRequirements.network,
+          timestamp: new Date().toISOString(),
+          error: error?.message || 'Native HBAR transfer failed',
+        };
+      }
+    }
+
     // Step 1: Create payment header with contract's domain (or default)
     let paymentHeader = await this.createPaymentHeader(account, paymentRequirements);
 
@@ -744,13 +861,12 @@ export class X402PaymentService {
     // If verification fails, try alternative domain names
     if (!verifyResult.isValid && verifyResult.invalidReason?.includes('signature')) {
       console.log('🔄 Verification failed, trying alternative domain names...');
-      // Try common domain name variations for USDC contracts
+      // Try common domain name variations for token contracts (when not using native HBAR)
       const alternativeDomains = [
         "USD Coin",
         "USDX Coin",
         "USD Coin (Hedera)",
         "USDC",
-        "USDC.e",
         "USD Coin on Hedera"
       ];
       

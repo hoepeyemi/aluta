@@ -100,12 +100,10 @@ export default function RevenueAnalytics() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return `${new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 6,
-    }).format(amount);
+    }).format(amount)} HBAR`;
   };
 
   const formatDate = (dateString: string) => {

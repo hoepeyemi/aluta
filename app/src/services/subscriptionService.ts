@@ -6,7 +6,7 @@ import { subscriptionApi, Subscription as ApiSubscription } from "./subscription
 export interface Subscription {
   id: string;
   service: string;
-  cost: number; // in USDC
+  cost: number; // in HBAR
   frequency: 'monthly' | 'weekly' | 'yearly';
   recipientAddress: string; // Service provider wallet address
   lastPaymentDate: Date | null;
@@ -229,16 +229,16 @@ export class SubscriptionAgent {
         return { success: false, error: 'Wallet not connected' };
       }
 
-      // Convert cost to USDC base units (6 decimals for USDC)
-      // subscription.cost is in USDC (e.g., 0.01 USDC)
-      const amountInBaseUnits = parseUnits(subscription.cost.toString(), 6).toString();
+      // Convert cost to wei (18 decimals) for Hedera EVM native HBAR transfer
+      // subscription.cost is in HBAR (e.g., 1.5 HBAR); JSON-RPC uses wei for msg.value
+      const amountInBaseUnits = parseUnits(subscription.cost.toString(), 18).toString();
 
-      // Create payment requirements for x402
+      // Create payment requirements (asset: native HBAR sent via transfer)
       const paymentRequirements: PaymentRequirements = {
         scheme: 'exact',
         network: 'hedera-testnet',
         payTo: subscription.recipientAddress,
-        asset: USDC_TESTNET,
+        asset: USDC_TESTNET, // placeholder for native HBAR flow; x402 may use token address
         maxAmountRequired: amountInBaseUnits,
         maxTimeoutSeconds: 300, // 5 minutes
         description: `Subscription payment for ${subscription.service}`,

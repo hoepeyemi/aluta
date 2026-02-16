@@ -321,7 +321,7 @@ All date parameters accept ISO 8601 format:
 - `2024-01-01T00:00:00.000Z` (with time)
 
 ### Amount Format
-All amounts are returned as numbers (USDC with 6 decimals).
+All amounts are returned as numbers (HBAR with 6 decimals).
 
 ## Performance Considerations
 

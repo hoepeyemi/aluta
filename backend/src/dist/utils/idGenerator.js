@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseYakoaId = void 0;
 exports.generateUniqueId = generateUniqueId;
 exports.generateTimestampedId = generateTimestampedId;
-exports.parseYakoaId = parseYakoaId;
+exports.parseId = parseId;
 /**
  * Generate a unique ID for IP asset registration
  * @param contractAddress - The contract address
@@ -28,18 +29,19 @@ function generateTimestampedId(contractAddress, tokenId) {
     return generateUniqueId(contractAddress, tokenId, Date.now());
 }
 /**
- * Extract contract address and token ID from a Yakoa ID
- * @param id - The Yakoa ID (format: contract:tokenId or contract:tokenId:timestamp)
+ * Extract contract address and token ID from an ID string
+ * @param id - The ID (format: contract:tokenId or contract:tokenId:timestamp)
  * @returns Object with contract address and token ID
  */
-function parseYakoaId(id) {
+function parseId(id) {
     const parts = id.split(':');
     if (parts.length < 2) {
-        throw new Error('Invalid Yakoa ID format');
+        throw new Error('Invalid ID format');
     }
     return {
         contractAddress: parts[0],
         tokenId: parts[1]
     };
 }
-//# sourceMappingURL=idGenerator.js.map
+// Legacy alias (deprecated - use parseId instead)
+exports.parseYakoaId = parseId;

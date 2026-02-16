@@ -1,17 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BLOCK_EXPLORER_URL = exports.NATIVE_TOKEN_ADDRESS = exports.walletClient = exports.publicClient = exports.account = exports.networkInfo = void 0;
+exports.BLOCK_EXPLORER_URL = exports.NATIVE_TOKEN_ADDRESS = exports.walletClient = exports.publicClient = exports.networkInfo = exports.account = void 0;
+require("dotenv/config");
 const viem_1 = require("viem");
 const accounts_1 = require("viem/accounts");
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-// Etherlink testnet configuration
-const etherlinkTestnet = {
-    id: 128123,
-    name: 'Etherlink Testnet',
+// Hedera testnet configuration
+const hederaTestnet = {
+    id: 296,
+    name: 'Hedera Testnet',
     nativeCurrency: {
         name: 'HBAR',
         symbol: 'HBAR',
@@ -19,49 +15,50 @@ const etherlinkTestnet = {
     },
     rpcUrls: {
         default: {
-            http: ['https://node.ghostnet.etherlink.com'],
+            http: ['https://testnet.hashio.io/api'],
         },
         public: {
-            http: ['https://node.ghostnet.etherlink.com'],
+            http: ['https://testnet.hashio.io/api'],
         },
     },
     blockExplorers: {
         default: {
-            name: 'Etherlink Testnet Explorer',
-            url: 'https://testnet.explorer.etherlink.com',
+            name: 'HashScan Testnet',
+            url: 'https://hashscan.io/testnet',
         },
     },
 };
 // Network configuration
 const networkConfig = {
-    rpcProviderUrl: 'https://node.ghostnet.etherlink.com',
-    blockExplorer: 'https://testnet.explorer.etherlink.com',
-    chain: etherlinkTestnet,
-    nativeTokenAddress: '0x0000000000000000000000000000000000000000', // Native HBAR token
+    rpcProviderUrl: 'https://testnet.hashio.io/api',
+    blockExplorer: 'https://hashscan.io/testnet',
+    chain: hederaTestnet,
+    nativeTokenAddress: '0x0000000000000000000000000000000000000000', // Native HBAR
 };
 // Helper functions
 const validateEnvironmentVars = () => {
-    if (!process.env.WALLET_PRIVATE_KEY) {
-        throw new Error('WALLET_PRIVATE_KEY is required in .env file');
+    if (!process.env.WALLET_PRIVATE_KEY && !process.env.ECDSA_PRIVATE_KEY_TEST) {
+        throw new Error('WALLET_PRIVATE_KEY or ECDSA_PRIVATE_KEY_TEST is required in .env file');
     }
 };
-// Initialize configuration
 validateEnvironmentVars();
+// Create account from private key
+const privateKey = (process.env.WALLET_PRIVATE_KEY || process.env.ECDSA_PRIVATE_KEY_TEST);
+exports.account = (0, accounts_1.privateKeyToAccount)(privateKey);
 exports.networkInfo = {
     ...networkConfig,
     rpcProviderUrl: process.env.RPC_PROVIDER_URL || networkConfig.rpcProviderUrl,
 };
-exports.account = (0, accounts_1.privateKeyToAccount)(`0x${process.env.WALLET_PRIVATE_KEY}`);
 const baseConfig = {
     chain: exports.networkInfo.chain,
     transport: (0, viem_1.http)(exports.networkInfo.rpcProviderUrl),
 };
 exports.publicClient = (0, viem_1.createPublicClient)(baseConfig);
 exports.walletClient = (0, viem_1.createWalletClient)({
-    ...baseConfig,
+    chain: exports.networkInfo.chain,
+    transport: (0, viem_1.http)(exports.networkInfo.rpcProviderUrl),
     account: exports.account,
 });
 // Export constants
 exports.NATIVE_TOKEN_ADDRESS = exports.networkInfo.nativeTokenAddress;
 exports.BLOCK_EXPLORER_URL = exports.networkInfo.blockExplorer;
-//# sourceMappingURL=config.js.map

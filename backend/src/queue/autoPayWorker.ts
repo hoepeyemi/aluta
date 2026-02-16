@@ -15,7 +15,7 @@ const subscriptionService = new SubscriptionService();
 
 // x402 Payment Facilitator URL
 const FACILITATOR_URL = process.env.FACILITATOR_URL || '';
-const USDC_TESTNET = process.env.USDC_MINT_TESTNET || '0x0000000000000000000000000000000000000000';
+const PAYMENT_ASSET = process.env.PAYMENT_ASSET_TESTNET || '0x0000000000000000000000000000000000000000';
 
 interface PaymentResult {
   success: boolean;

@@ -182,19 +182,19 @@ export default function SubscriptionManager({
 
     try {
       setLoading(true);
-      onSuccess?.(`Processing payment of $${subscription.cost.toFixed(3)} USDC to ${subscription.service}...`);
+      onSuccess?.(`Processing payment of ${subscription.cost.toFixed(3)} HBAR to ${subscription.service}...`);
       
       const result = await subscriptionAgent.autoPaySubscription(account, subscription);
       
       if (result.success) {
-        onSuccess?.(`✅ Successfully paid $${subscription.cost.toFixed(3)} USDC to ${subscription.service}. Transaction: ${result.transactionHash?.slice(0, 10)}...`);
+        onSuccess?.(`✅ Successfully paid ${subscription.cost.toFixed(3)} HBAR to ${subscription.service}. Transaction: ${result.transactionHash?.slice(0, 10)}...`);
         loadSubscriptions();
       } else {
-        onError?.(result.error || 'Payment failed. Please check your USDC.e balance and try again.');
+        onError?.(result.error || 'Payment failed. Please check your HBAR balance and try again.');
       }
     } catch (error) {
       console.error('Payment error:', error);
-      onError?.(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please ensure you have sufficient USDC.e balance.`);
+      onError?.(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please ensure you have sufficient HBAR balance.`);
     } finally {
       setLoading(false);
     }
