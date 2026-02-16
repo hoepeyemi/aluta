@@ -47,25 +47,21 @@ PORT=5000
 
 # Optional: NFT Contract Configuration
 # NFT_CONTRACT_ADDRESS=0x0000000000000000000000000000000000000000
+
+# Optional: Payment asset for auto-pay worker (default: zero address = native HBAR)
+# PAYMENT_ASSET_TESTNET=0x...
 ```
 
 ## Redis Configuration
 
-The auto-pay queue system requires Redis. You can use:
+The auto-pay queue and payment scheduler **require** Redis. You must set either:
 
-1. **Redis Cloud (Free Tier)** - Already configured with hardcoded credentials
-2. **Local Redis** - Set `REDIS_URL=redis://localhost:6379`
-3. **Custom Redis** - Update `REDIS_URL` with your connection string
+- **REDIS_URL** – full connection string, e.g. `redis://username:password@host:port`, or  
+- **REDIS_USERNAME**, **REDIS_PASSWORD**, **REDIS_HOST**, **REDIS_PORT**
 
-### Current Redis Setup (Hardcoded Fallback)
+Without Redis, the backend will fail when the worker initializes.
 
-If `REDIS_URL` is not set in `.env`, the system will use:
-- **Host**: `redis-15358.c15.us-east-1-2.ec2.cloud.redislabs.com`
-- **Port**: `15358`
-- **Username**: `default`
-- **Password**: `WsjE9g4MJCwrcmyXL0dR80etUIAZ8sOZ`
-
-### To Use Your Own Redis
+### Examples
 
 1. **Local Redis:**
    ```bash

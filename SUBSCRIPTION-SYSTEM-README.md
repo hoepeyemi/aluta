@@ -148,7 +148,11 @@ Main frontend service class that:
 - **Usage Analytics**: Tracks subscription usage patterns
 - **Payment History**: Maintains local payment records
 
-### 2. SubscriptionManager (`app/src/components/SubscriptionManager.tsx`)
+### 2. HBARBalance (`app/src/components/HBARBalance.tsx`)
+
+Shows the connected wallet’s **native HBAR** balance on Hedera testnet (via thirdweb `useWalletBalance`). Displayed in the header.
+
+### 3. SubscriptionManager (`app/src/components/SubscriptionManager.tsx`)
 
 Main UI component that:
 - Displays subscription statistics
@@ -163,7 +167,7 @@ Main UI component that:
 - Payment history visualization
 - Usage analytics display
 
-### 3. SubscriptionCard (`app/src/components/SubscriptionCard.tsx`)
+### 4. SubscriptionCard (`app/src/components/SubscriptionCard.tsx`)
 
 Individual subscription display component with:
 - Payment due status indicators
@@ -171,7 +175,7 @@ Individual subscription display component with:
 - Action buttons (pay, edit, cancel, toggle auto-pay)
 - Cost and frequency information
 
-### 4. API Integration (`app/src/services/subscriptionApi.ts`)
+### 5. API Integration (`app/src/services/subscriptionApi.ts`)
 
 HTTP client for backend communication:
 - RESTful API calls
@@ -209,28 +213,35 @@ HTTP client for backend communication:
 
 ## Payment Processing
 
-### x402 Protocol Integration
+### Native HBAR payments (default)
 
-The system uses the x402 payment protocol for crypto payments:
+Payments are in **HBAR** (native Hedera token). When no payment facilitator is configured and the payment asset is the zero address:
 
-1. **Payment Requirements**: Define payment parameters (amount, recipient, asset)
-2. **Payment Settlement**: Process payment through x402 facilitator
-3. **Transaction Recording**: Store transaction hash and status
-4. **Error Handling**: Categorize and handle payment failures
+1. **Direct transfer** – The frontend sends HBAR from the user’s wallet to the subscription **recipient address** via a normal value transaction (`gasLimit: 21_000`).
+2. **Recipient must be an EOA** – Use a wallet (EOA) address as the subscription recipient. Direct HBAR transfers to smart contract addresses often **revert** on Hedera; the app checks for contract code and warns or blocks.
+3. **Amount** – Cost is stored in HBAR (e.g. 1.5). The frontend converts to wei (18 decimals) for the Hedera EVM `value` field.
+4. **No facilitator** – No x402 verify/settle step; the transaction hash is recorded after confirmation.
 
-### Payment Flow
+### Optional: x402 / token-based payments
 
-1. **Manual Payment**:
-   - User clicks "Pay Now"
-   - Frontend creates payment requirements
-   - x402 processes payment
-   - Transaction recorded in database
+If you set a **facilitator URL** and a **token (ERC-20) contract address** as the payment asset:
 
-2. **Auto-Payment**:
-   - Scheduler detects due subscription
-   - Job added to queue
-   - Worker processes payment
-   - Status updated and recorded
+1. **Payment requirements** – Amount, recipient, asset (token address).
+2. **Verify + settle** – Payment is verified and settled via the x402 facilitator.
+3. **Transaction recording** – Transaction hash and status stored as today.
+
+### Payment flow (manual)
+
+1. User clicks **Pay Now**.
+2. Frontend builds payment requirements (amount in HBAR wei, recipient, asset).
+3. **Native HBAR path:** Wallet sends HBAR to recipient; on success, frontend records payment via API.
+4. **Token path (if configured):** x402 creates payment header, verifies, settles; then frontend records payment.
+
+### Auto-payment
+
+- Scheduler (every 5 minutes) finds due subscriptions with auto-pay enabled.
+- Jobs are added to the Bull queue; worker processes them (payment logic may use facilitator if configured; otherwise native HBAR path applies when worker supports it).
+- Status and transaction hashes are updated and recorded.
 
 ### Error Handling
 
@@ -299,6 +310,7 @@ FACILITATOR_URL=<your-hedera-x402-facilitator-url-if-applicable>
 
 #### Frontend
 ```env
+# Backend API base URL (default: http://localhost:5000/api)
 VITE_API_URL=http://localhost:5000/api
 ```
 
@@ -358,28 +370,29 @@ VITE_API_URL=http://localhost:5000/api
    - Validate credentials
 
 2. **Payment Failures**
-   - Check HBAR balance
-   - Verify wallet connection
-   - Review transaction logs
+   - Ensure subscription **recipient address** is a wallet (EOA), not a contract (direct HBAR to contracts reverts on Hedera).
+   - Check HBAR balance (and gas).
+   - Verify wallet is on Hedera testnet (Chain ID 296).
+   - Review transaction on HashScan (link in error message if reverted).
 
 3. **Queue Not Processing**
-   - Ensure Redis is running
-   - Check worker logs
-   - Verify job data integrity
+   - Ensure Redis is running and REDIS_URL (or REDIS_*) is set.
+   - Check worker logs in backend console.
+   - Verify job data integrity.
 
 ### Debug Commands
 
 ```bash
-# Check queue status
-curl http://localhost:5000/api/queue/status
+# Health (DB + Redis)
+curl http://localhost:5000/health
 
-# View failed payments
+# Failed payment stats
 curl http://localhost:5000/api/failed-payments/stats
 
-# Test subscription creation
+# Create a subscription (recipientAddress must be an EOA)
 curl -X POST http://localhost:5000/api/subscriptions \
   -H "Content-Type: application/json" \
-  -d '{"serviceName":"Test","cost":0.01,"frequency":"monthly","recipientAddress":"0x...","userAddress":"0x..."}'
+  -d '{"serviceName":"Test","cost":1,"frequency":"monthly","recipientAddress":"0xYourEOAAddress","userAddress":"0xPayerAddress"}'
 ```
 
 ## Contributing

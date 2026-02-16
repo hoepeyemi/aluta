@@ -1,67 +1,52 @@
-# Story TypeScript SDK Examples
+# Backend Source (Aluta)
 
-## Get Started
+This directory contains the **Aluta** subscription backend and, in the same tree, legacy **Story Protocol** TypeScript examples (scripts and utilities).
 
-1. Install the dependencies:
+## Aluta subscription backend
 
-    ```
-    npm install
-    ```
+**Entry:** `index.ts` – Express server, subscription/services/jobs/statistics/failed-payments APIs, health check.
 
-2. Rename the `.env.example` file to `.env`
+**Run from repo root `backend/`:**
 
-3. Add your Story Network Testnet wallet's private key to `.env` file:
+```bash
+yarn dev
+# or
+yarn start
+```
 
-    ```
-    WALLET_PRIVATE_KEY=<your_wallet_private_key>
-    ```
+**Build (from `backend/`):**
 
-4. [REQUIRED FOR `register` and `register-custom` SCRIPTS] Go to [Pinata](https://pinata.cloud/) and create a new API key. Add the JWT to your `.env` file:
+```bash
+yarn build
+```
 
-    ```
-    PINATA_JWT=<your_pinata_jwt>
-    ```
+Uses `tsc -p src/tsconfig.json`. Output: `src/dist/`.  
+Excluded from build: `node_modules`, `dist`, and script-only files that depend on optional packages (`utils/functions/createSpgNftCollection.ts`, `utils/functions/uploadToIpfs.ts`).
 
-5. [OPTIONAL] We have already configured a public SPG NFT collection for you (`0xc32A8a0FF3beDDDa58393d022aF433e78739FAbc`). If you want to create your own collection for your IPs, create a new SPG NFT collection by running `npm run create-spg-collection` in your terminal.
+### Main modules
 
-    3a. Look at the console output, and copy the NFT contract address. Add that value as `SPG_NFT_CONTRACT_ADDRESS` to your `.env` file:
+| Path | Purpose |
+|------|---------|
+| `index.ts` | Express app, routes, payment scheduler |
+| `routes/` | subscriptions, services, jobs, statistics, failedPayments |
+| `services/` | subscriptionService, paymentScheduler, failedPaymentTracker |
+| `queue/` | autoPayQueue (Bull), autoPayWorker |
+| `lib/prisma.ts` | Prisma client (PostgreSQL) |
+| `utils/config.ts` | Hedera testnet chain config (RPC, explorer) |
+| `utils/utils.ts` | Hedera explorer URLs, licensing helpers, etc. |
+| `utils/cache.ts` | Caching for subscriptions/stats |
 
-    ```
-    SPG_NFT_CONTRACT_ADDRESS=<your_spg_nft_contract_address>
-    ```
+### Network
 
-    **NOTE: You will only have to do this one time. Once you create an SPG collection, you can run this script as many times as you'd like.**
+- **Hedera Testnet** – Chain ID 296, RPC `https://testnet.hashio.io/api`.  
+- Payments are in **HBAR**. Config and explorer URLs are in `utils/config.ts`.
 
-## Available Scripts
+---
 
-Below are all of the available scripts to help you build on Story.
+## Story Protocol SDK examples (optional)
 
-### Registration
+Scripts and utilities under this directory also include **Story Protocol** TypeScript SDK examples (registration, licenses, derivatives, disputes, royalty, etc.). They are driven by **backend/src/package.json** (e.g. `npm run register`, `npm run mint-license`).
 
--   `register`: This mints an NFT and registers it in the same transaction, using a public SPG collection.
--   `register-custom`: This mints an NFT using a custom ERC-721 contract and then registers it in a separate transaction.
+**Note:** The main Aluta app is run and built from **backend/package.json** (parent directory). The Story scripts use their own dependencies and are not required for the subscription backend. Some of their utilities (e.g. `utils/functions/createSpgNftCollection.ts`, `utils/functions/uploadToIpfs.ts`) rely on `client` from config or `pinata-web3` and are excluded from the Aluta backend build.
 
-### Licenses
-
--   `mint-license`: Mints a license token from an IP Asset.
--   `limit-license`: Registers a new IP and attaches license terms that only allow you to mint 1 license token. This is an example for limiting the amount of licenses you can mint.
-
-### Royalty
-
--   `pay-revenue`: This is an example of registering a derivative, paying the derivative, and then allowing derivative and parent to claim their revenues.
--   `license-revenue`: This is an example of registering a derivative, minting a paid license from the derivative, and then allowing derivative and parent to claim their revenues.
--   `transfer-royalty-tokens`: This shows you how to transfer Royalty Tokens from an IP Account to any external wallet. Royalty Tokens are used to claim a % of revenue from an IP Asset.
-
-### Derivative
-
--   `derivative-commercial`: This mints an NFT and registers it as a derivative of an IP Asset in the same transaction, using a public SPG collection. It costs 1 $WIP to register as derivative and also includes an example of the parent claiming its revenue.
--   `derivative-non-commercial`: This mints an NFT and registesr it as a derivative of an IP Asset in the same transaction, using a public SPG collection. It's free to register as derivative.
--   `derivative-commercial-custom`: This mints an NFT using a custom ERC-721 contract and then registers it as a derivative of an IP Asset in a separate transaction. It costs 1 $WIP to register as derivative and also includes an example of the parent claiming its revenue.
-
-### Dispute
-
--   `dispute`: This disputes an IP Asset.
-
-### Misc
-
--   `send-raw-transaction`: An example of sending a transaction using viem's `encodeFunctionData`.
+For Aluta-only development, use `backend/` as the working directory and the commands in the root **README.md** and **BACKEND-SETUP-GUIDE.md**.
