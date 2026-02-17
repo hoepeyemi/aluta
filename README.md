@@ -22,6 +22,7 @@ Aluta is a crypto-based subscription management platform built on the **Hedera**
 |---|---|
 | **Live demo** | [https://glittery-alpaca-76b271.netlify.app/](https://glittery-alpaca-76b271.netlify.app/) |
 | **Demo video** | [https://youtu.be/xI_zSQ7vCgM](https://youtu.be/xI_zSQ7vCgM) |
+| **Pitch deck** | [Google Drive](https://drive.google.com/file/d/1jzgKP_kWKUegTJZzhZk9XcdK1WTU_ZtM/view?usp=sharing) |
 
 ---
 
