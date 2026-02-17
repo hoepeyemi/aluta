@@ -1,6 +1,6 @@
 # Database Setup Guide
 
-This guide will help you set up PostgreSQL database for the **Aluta** subscription management system. All costs and payment amounts are stored in **HBAR** (decimal).
+This guide will help you set up PostgreSQL database for the subscription management system.
 
 ## Prerequisites
 
@@ -70,14 +70,14 @@ The database includes three main tables:
 
 ### Services
 - Represents payable services that users can subscribe to
-- Fields: id, name, description, cost (in HBAR), frequency, recipientAddress (wallet/EOA)
+- Fields: id, name, description, cost, frequency, recipientAddress
 
 ### Subscriptions
 - User subscriptions to services
-- Fields: id, serviceId, userAddress, cost (HBAR), frequency, recipientAddress, lastPaymentDate, nextPaymentDate, autoPay, usageData
+- Fields: id, serviceId, userAddress, cost, frequency, recipientAddress, lastPaymentDate, nextPaymentDate, autoPay, usageData
 
 ### Payments
-- Records of payments made for subscriptions (amount in HBAR, network: hedera-testnet)
+- Records of payments made for subscriptions
 - Fields: id, subscriptionId, amount, transactionHash, network, status, timestamp
 
 ## API Endpoints

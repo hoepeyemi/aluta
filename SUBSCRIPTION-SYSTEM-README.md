@@ -1,5 +1,13 @@
 # Subscription System Documentation
 
+**Part of [Aluta](README.md)** — DeFi & tokenization track. [Live demo](https://glittery-alpaca-76b271.netlify.app/) · [Demo video](https://youtu.be/xI_zSQ7vCgM)
+
+## Current implementation
+
+- **Chain**: Hedera testnet (RPC: Hashio; explorer: HashScan).
+- **Payments**: Native **HBAR** only. Payments are direct EOA-to-EOA value transfers (no facilitator or ERC-20 required). Optional x402/token path when `VITE_FACILITATOR_URL` and a token address are set.
+- **UI**: All amounts and balance are in HBAR. Recipient must be a wallet (EOA) address; transfers to contract addresses are blocked with a clear error.
+
 ## Overview
 
 The Aluta subscription system is a comprehensive crypto-based subscription management platform built on the Hedera blockchain. It enables users to create, manage, and automate payments for recurring services using HBAR (native Hedera token).
@@ -148,11 +156,7 @@ Main frontend service class that:
 - **Usage Analytics**: Tracks subscription usage patterns
 - **Payment History**: Maintains local payment records
 
-### 2. HBARBalance (`app/src/components/HBARBalance.tsx`)
-
-Shows the connected wallet’s **native HBAR** balance on Hedera testnet (via thirdweb `useWalletBalance`). Displayed in the header.
-
-### 3. SubscriptionManager (`app/src/components/SubscriptionManager.tsx`)
+### 2. SubscriptionManager (`app/src/components/SubscriptionManager.tsx`)
 
 Main UI component that:
 - Displays subscription statistics
@@ -167,7 +171,7 @@ Main UI component that:
 - Payment history visualization
 - Usage analytics display
 
-### 4. SubscriptionCard (`app/src/components/SubscriptionCard.tsx`)
+### 3. SubscriptionCard (`app/src/components/SubscriptionCard.tsx`)
 
 Individual subscription display component with:
 - Payment due status indicators
@@ -175,7 +179,7 @@ Individual subscription display component with:
 - Action buttons (pay, edit, cancel, toggle auto-pay)
 - Cost and frequency information
 
-### 5. API Integration (`app/src/services/subscriptionApi.ts`)
+### 4. API Integration (`app/src/services/subscriptionApi.ts`)
 
 HTTP client for backend communication:
 - RESTful API calls
@@ -213,35 +217,31 @@ HTTP client for backend communication:
 
 ## Payment Processing
 
-### Native HBAR payments (default)
+### Native HBAR (default)
 
-Payments are in **HBAR** (native Hedera token). When no payment facilitator is configured and the payment asset is the zero address:
+Payments use **native HBAR** on Hedera testnet:
 
-1. **Direct transfer** – The frontend sends HBAR from the user’s wallet to the subscription **recipient address** via a normal value transaction (`gasLimit: 21_000`).
-2. **Recipient must be an EOA** – Use a wallet (EOA) address as the subscription recipient. Direct HBAR transfers to smart contract addresses often **revert** on Hedera; the app checks for contract code and warns or blocks.
-3. **Amount** – Cost is stored in HBAR (e.g. 1.5). The frontend converts to wei (18 decimals) for the Hedera EVM `value` field.
-4. **No facilitator** – No x402 verify/settle step; the transaction hash is recorded after confirmation.
+1. **Payment requirements**: Amount (in HBAR, 18 decimals for EVM value), recipient EOA address, network.
+2. **Transfer**: Frontend sends a simple value transfer (no token contract). Recipient must be a wallet (EOA); contracts are rejected with a clear error.
+3. **Recording**: Transaction hash and status are stored via the backend API.
+4. **Gas**: Simple transfers use a 21,000 gas limit.
 
-### Optional: x402 / token-based payments
+### Optional x402 / token flow
 
-If you set a **facilitator URL** and a **token (ERC-20) contract address** as the payment asset:
+When a facilitator URL and token asset are configured, the app can use the x402 protocol for token-based payments instead of native HBAR.
 
-1. **Payment requirements** – Amount, recipient, asset (token address).
-2. **Verify + settle** – Payment is verified and settled via the x402 facilitator.
-3. **Transaction recording** – Transaction hash and status stored as today.
+### Payment flow
 
-### Payment flow (manual)
+1. **Manual payment**
+   - User clicks "Pay Now"
+   - Frontend builds payment requirements (recipient, amount in HBAR)
+   - Native HBAR transfer is sent from the connected wallet
+   - Backend records the transaction
 
-1. User clicks **Pay Now**.
-2. Frontend builds payment requirements (amount in HBAR wei, recipient, asset).
-3. **Native HBAR path:** Wallet sends HBAR to recipient; on success, frontend records payment via API.
-4. **Token path (if configured):** x402 creates payment header, verifies, settles; then frontend records payment.
-
-### Auto-payment
-
-- Scheduler (every 5 minutes) finds due subscriptions with auto-pay enabled.
-- Jobs are added to the Bull queue; worker processes them (payment logic may use facilitator if configured; otherwise native HBAR path applies when worker supports it).
-- Status and transaction hashes are updated and recorded.
+2. **Auto-payment**
+   - Scheduler finds due subscriptions
+   - Jobs are queued (Bull/Redis)
+   - Worker processes payments (backend records success/failure)
 
 ### Error Handling
 
@@ -310,7 +310,6 @@ FACILITATOR_URL=<your-hedera-x402-facilitator-url-if-applicable>
 
 #### Frontend
 ```env
-# Backend API base URL (default: http://localhost:5000/api)
 VITE_API_URL=http://localhost:5000/api
 ```
 
@@ -370,29 +369,28 @@ VITE_API_URL=http://localhost:5000/api
    - Validate credentials
 
 2. **Payment Failures**
-   - Ensure subscription **recipient address** is a wallet (EOA), not a contract (direct HBAR to contracts reverts on Hedera).
-   - Check HBAR balance (and gas).
-   - Verify wallet is on Hedera testnet (Chain ID 296).
-   - Review transaction on HashScan (link in error message if reverted).
+   - Check HBAR balance
+   - Verify wallet connection
+   - Review transaction logs
 
 3. **Queue Not Processing**
-   - Ensure Redis is running and REDIS_URL (or REDIS_*) is set.
-   - Check worker logs in backend console.
-   - Verify job data integrity.
+   - Ensure Redis is running
+   - Check worker logs
+   - Verify job data integrity
 
 ### Debug Commands
 
 ```bash
-# Health (DB + Redis)
-curl http://localhost:5000/health
+# Check queue status
+curl http://localhost:5000/api/queue/status
 
-# Failed payment stats
+# View failed payments
 curl http://localhost:5000/api/failed-payments/stats
 
-# Create a subscription (recipientAddress must be an EOA)
+# Test subscription creation
 curl -X POST http://localhost:5000/api/subscriptions \
   -H "Content-Type: application/json" \
-  -d '{"serviceName":"Test","cost":1,"frequency":"monthly","recipientAddress":"0xYourEOAAddress","userAddress":"0xPayerAddress"}'
+  -d '{"serviceName":"Test","cost":0.01,"frequency":"monthly","recipientAddress":"0x...","userAddress":"0x..."}'
 ```
 
 ## Contributing

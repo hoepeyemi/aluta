@@ -1,119 +1,93 @@
 # Aluta
 
-🔮 **Aluta** is an IP management and crypto subscription platform on **Hedera testnet**. Create services, subscribe with your wallet, and pay in **HBAR** (native Hedera token).
+**DeFi & Tokenization** — Crypto subscription management on Hedera with native HBAR payments.
 
 ---
 
-## Project Details
+## Project Description
 
-### Project Description
+Aluta is a crypto-based subscription management platform built on the **Hedera** blockchain. Users create and manage recurring subscriptions to services and pay in **native HBAR** (no stablecoin required). The app supports manual “Pay Now” and optional auto-pay, with payments sent as direct HBAR transfers on Hedera testnet. A Node.js/Express backend stores subscriptions and payment history, runs a Redis/Bull queue for scheduled payments, and exposes REST APIs for the React frontend. The frontend uses Thirdweb and ethers for wallet connection and transaction signing on Hedera EVM.
 
-Aluta lets users manage recurring subscriptions and intellectual-property-related services on-chain. Service providers set a cost in HBAR; subscribers connect a Hedera-compatible wallet (e.g. MetaMask), view their HBAR balance, and pay with one click via native HBAR transfer—no intermediary token or facilitator required. The backend records payments, supports auto-pay scheduling with a Redis-backed queue, and exposes analytics and payment history. Built for Hedera testnet (Chain ID 296), Aluta demonstrates DeFi-style recurring value transfer and tokenization of services using the native asset (HBAR).
+---
 
-### Hackathon Track
+## Hackathon Track
 
 **DeFi & Tokenization**
 
-### Demo
+---
 
-- **Live demo:** [https://glittery-alpaca-76b271.netlify.app/](https://glittery-alpaca-76b271.netlify.app/)
-- **Demo video:** [https://youtu.be/xI_zSQ7vCgM](https://youtu.be/xI_zSQ7vCgM)
+## Demo
 
-### Tech Stack
-
-| Layer | Technologies |
-|-------|--------------|
-| **Frontend** | React, TypeScript, Vite, thirdweb (wallets + chain), ethers.js, Tailwind CSS |
-| **Backend** | Node.js, Express, TypeScript, Prisma (ORM) |
-| **Database** | PostgreSQL |
-| **Queue / cache** | Redis, Bull |
-| **Blockchain** | Hedera Testnet (EVM), Hashio RPC, HashScan (explorer) |
-| **Payments** | Native HBAR (Hedera), EOA-to-EOA value transfer |
-| **Deployment** | Netlify (frontend), Railway / Docker (backend optional) |
+| | |
+|---|---|
+| **Live demo** | [https://glittery-alpaca-76b271.netlify.app/](https://glittery-alpaca-76b271.netlify.app/) |
+| **Demo video** | [https://youtu.be/xI_zSQ7vCgM](https://youtu.be/xI_zSQ7vCgM) |
 
 ---
 
-## Overview
+## Tech Stack
 
-- **Frontend (React + Vite + thirdweb)** – Connect wallet (MetaMask, in-app wallet, etc.), view HBAR balance, manage subscriptions, pay with native HBAR.
-- **Backend (Node.js + Express + Prisma)** – REST API for subscriptions, services, payments, statistics, and auto-pay queue (Redis + Bull).
-- **Chain** – Hedera Testnet (Chain ID 296, RPC: Hashio).
+### Frontend
+- **React 18** + **TypeScript**
+- **Vite** (build tooling)
+- **Thirdweb** (wallet connection, Hedera chain)
+- **ethers.js** (transactions, EIP-712, native HBAR transfer)
+- **Tailwind CSS** (styling)
+- **Axios** (API client)
 
-All amounts and costs are in **HBAR**. Payments use **native HBAR transfer** (no facilitator required); recipient must be a wallet (EOA) address.
+### Backend
+- **Node.js** + **Express**
+- **Prisma** (ORM)
+- **PostgreSQL** (database)
+- **Redis** (caching + job queue)
+- **Bull** (payment job queue, retries)
+- **TypeScript**
+
+### Blockchain & infra
+- **Hedera Testnet** (chain ID 296)
+- **Hashio RPC** (`https://testnet.hashio.io/api`)
+- **HashScan** (block explorer)
+- **Native HBAR** (payments; optional x402/facilitator for token flows)
+
+### Services & tooling
+- **Vercel / Netlify** (frontend hosting)
+- **Yarn** (package manager)
+
+---
+
+## Implementation Overview
+
+- **Chain**: Hedera testnet only (config and UI use Hedera RPC, explorer, and HBAR).
+- **Payments**: Native HBAR sent via simple value transfer (EOA → EOA). No facilitator required; optional x402/token path when a facilitator URL and token address are set.
+- **Subscriptions**: Stored in PostgreSQL; cost and amounts are in HBAR. Frontend shows HBAR balance (native) and subscription costs in HBAR.
+- **Backend**: REST API for subscriptions, services, payments, statistics, and failed-payment tracking. Payment scheduler enqueues due subscriptions; Bull worker processes jobs (recording success/failure).
+- **Frontend**: Connect wallet (e.g. MetaMask) on Hedera testnet, create/manage subscriptions, pay with HBAR, view payment history and analytics.
+
+See [SUBSCRIPTION-SYSTEM-README.md](./SUBSCRIPTION-SYSTEM-README.md) for full subscription and payment flow documentation, and [BACKEND-SETUP-GUIDE.md](./BACKEND-SETUP-GUIDE.md) for running the backend.
+
+---
 
 ## Quick Start
 
-### 1. Backend
-
+### Backend
 ```bash
 cd backend
 yarn install
-cp .env.example .env   # or create .env (see backend/ENVIRONMENT_SETUP.md)
-# Set DATABASE_URL and REDIS_URL (or REDIS_* vars) in .env
+cp .env.example .env   # set DATABASE_URL, REDIS_URL, etc.
 npx prisma migrate deploy
 yarn dev
 ```
 
-Backend runs at `http://localhost:5000`.
-
-### 2. Frontend
-
+### Frontend
 ```bash
 cd app
 yarn install
-# Optional: create app/.env with VITE_API_URL=http://localhost:5000/api
-yarn dev --host
+echo "VITE_API_URL=http://localhost:5000/api" > .env
+yarn dev
 ```
 
-App runs at `http://localhost:5173`. Connect a Hedera testnet wallet and use the subscription manager.
+---
 
-### 3. Environment summary
+## License
 
-| Where   | Variable           | Purpose                          |
-|---------|--------------------|----------------------------------|
-| Backend | `DATABASE_URL`     | PostgreSQL (required)            |
-| Backend | `REDIS_URL`        | Redis for queue (required)       |
-| Backend | `PORT`             | Server port (default 5000)       |
-| App     | `VITE_API_URL`     | Backend API base (default local) |
-
-See **backend/ENVIRONMENT_SETUP.md** and **SUBSCRIPTION-SYSTEM-README.md** for full env and configuration.
-
-## Project structure
-
-```
-aluta/
-├── app/                    # Frontend (React, Vite, thirdweb)
-│   ├── src/
-│   │   ├── components/     # HBARBalance, SubscriptionManager, etc.
-│   │   ├── services/       # subscriptionApi, subscriptionService, x402PaymentService
-│   │   └── pages/
-│   └── package.json
-├── backend/                # API and workers
-│   ├── src/
-│   │   ├── index.ts        # Express app, subscription/services/jobs/statistics routes
-│   │   ├── routes/         # subscriptions, services, jobs, statistics, failedPayments
-│   │   ├── services/       # subscriptionService, paymentScheduler, failedPaymentTracker
-│   │   ├── queue/          # autoPayQueue, autoPayWorker
-│   │   └── utils/          # config (Hedera), utils, cache
-│   ├── prisma/             # schema, migrations
-│   └── package.json
-├── BACKEND-SETUP-GUIDE.md
-├── SUBSCRIPTION-SYSTEM-README.md
-└── README.md               # This file
-```
-
-## Key documentation
-
-- **BACKEND-SETUP-GUIDE.md** – Run backend, endpoints, troubleshooting.
-- **backend/ENVIRONMENT_SETUP.md** – Backend env vars (DB, Redis, optional wallet/RPC).
-- **SUBSCRIPTION-SYSTEM-README.md** – Subscription system, payment flow, HBAR, API details.
-- **DATABASE_SETUP.md** – PostgreSQL and Prisma migrations.
-
-## Network (Hedera testnet)
-
-- **Chain ID:** 296  
-- **RPC:** https://testnet.hashio.io/api  
-- **Explorer:** https://hashscan.io/testnet  
-- **Native token:** HBAR (18 decimals in EVM `value`)
-
-Recipient addresses for subscriptions must be **wallet (EOA)** addresses; direct HBAR transfers to contracts may revert on Hedera.
+Part of the Aluta project; see repository license terms.

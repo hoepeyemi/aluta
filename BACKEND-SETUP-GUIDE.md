@@ -1,141 +1,253 @@
 # Backend Setup & Troubleshooting Guide
 
-Backend for **Aluta**: subscription and payment API on Hedera testnet. Uses Express, Prisma (PostgreSQL), Redis, and Bull for the auto-pay queue.
+**Aluta backend** — Node.js/Express API for subscription and payment management on Hedera testnet. See [README.md](README.md) for project overview, [demo](https://glittery-alpaca-76b271.netlify.app/), and [demo video](https://youtu.be/xI_zSQ7vCgM).
+
+## Problem
+Frontend receiving HTML error pages instead of JSON:
+```
+Error loading IP Asset Locker data: SyntaxError: Unexpected token '<', "<!doctype "...
+```
+
+## Root Cause
+The backend was returning 404 HTML error pages instead of JSON responses when endpoints weren't found or the service wasn't running.
+
+## Solution Implemented
+
+### 1. Added IP Asset Locker Routes to `app.ts`
+- Previously only `index.ts` had the routes
+- Now both files have consistent route registration
+
+### 2. Added JSON Error Handlers
+Both `index.ts` and `app.ts` now include:
+
+**404 Handler:**
+```typescript
+app.use((_req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Endpoint not found',
+    message: 'The requested endpoint does not exist...'
+  });
+});
+```
+
+**Error Handler:**
+```typescript
+app.use((err: any, _req, res, _next) => {
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error',
+    message: err.message
+  });
+});
+```
 
 ## How to Run Backend
 
 ### Step 1: Install Dependencies
-
 ```bash
 cd backend
 yarn install
 ```
 
-### Step 2: Environment Variables
-
-Create a `.env` file in `backend/` with at least:
-
+### Step 2: Set Up Environment Variables
+Create `.env` file in `/backend` with required variables (see [backend/ENVIRONMENT_SETUP.md](backend/ENVIRONMENT_SETUP.md) for full list):
 ```env
-# Required
-DATABASE_URL=postgresql://user:password@host:port/database
-REDIS_URL=redis://localhost:6379
-# Or: REDIS_USERNAME, REDIS_PASSWORD, REDIS_HOST, REDIS_PORT
-
-# Optional
 PORT=5000
+DATABASE_URL=postgresql://user:password@host:port/database
+REDIS_URL=redis://username:password@host:port
 RPC_PROVIDER_URL=https://testnet.hashio.io/api
-WALLET_PRIVATE_KEY=0x...
+WALLET_PRIVATE_KEY=your_private_key
 ```
 
-See **backend/ENVIRONMENT_SETUP.md** for full list (DB, Redis, wallet, RPC, Yakoa, etc.).
-
-### Step 3: Database
-
+### Step 3: Start Backend
 ```bash
-cd backend
-npx prisma migrate deploy
-npx prisma generate
-```
-
-### Step 4: Build (optional, for production)
-
-```bash
-cd backend
-yarn build
-```
-
-Build uses `tsc -p src/tsconfig.json` and outputs to `backend/src/dist`. Script-only files under `utils/functions` (e.g. createSpgNftCollection, uploadToIpfs) are excluded.
-
-### Step 5: Start Backend
-
-```bash
-cd backend
+# Development mode
 yarn dev
-# Or: yarn start
+
+# Or production mode
+yarn start
 ```
 
-**Expected output:**
-
+**Expected Output:**
 ```
-✅ Database connected successfully
 🚀 Backend server running at http://localhost:5000
-✅ Payment scheduler started
 ```
 
-## API Endpoints
+## Verify Backend is Running
 
-| Path | Description |
-|------|-------------|
-| `GET /` | Service info and list of endpoints |
-| `GET /health` | Health check (DB + Redis) |
-| `GET/POST /api/subscriptions/*` | Subscriptions CRUD, payments |
-| `GET/POST /api/services` | Services list and create |
-| `GET /api/jobs/:jobId` | Auto-pay job status |
-| `GET /api/statistics/*` | Summary, revenue, success rates, receipts |
-| `GET /api/failed-payments/*` | Failed payment stats and list |
+### Test Root Endpoint
+```bash
+curl http://localhost:5000/
+```
 
-Root response example:
-
+**Expected Response:**
 ```json
 {
-  "message": "✅ Smart Subscription Manager backend is running!",
+  "message": "✅ Yakoa + Hedera + Arbitration backend is running!",
   "version": "1.0.0",
   "endpoints": {
-    "subscriptions": "/api/subscriptions",
-    "services": "/api/services",
-    "jobs": "/api/jobs",
-    "statistics": "/api/statistics",
-    "failedPayments": "/api/failed-payments",
-    "health": "/health"
+    "register": "/api/register",
+    "yakoa": "/api/yakoa",
+    "license": "/api/license",
+    "arbitration": "/api/arbitration",
+    "ipAssetLocker": "/api/ip-asset-locker"
   }
+}
+```
+
+### Test IP Asset Locker Stats
+```bash
+curl http://localhost:5000/api/ip-asset-locker/stats
+```
+
+**Expected Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalMintedHBAR": "0",
+    "totalHBARTokensMinted": "0",
+    "totalLockedAssets": 0
+  }
+}
+```
+
+### Test 404 Handler
+```bash
+curl http://localhost:5000/api/nonexistent
+```
+
+**Expected Response (NOT HTML):**
+```json
+{
+  "success": false,
+  "error": "Endpoint not found",
+  "message": "The requested endpoint does not exist..."
 }
 ```
 
 ## Frontend Configuration
 
-The app calls the backend via **app/src/services/subscriptionApi.ts**:
+### Verify Backend URL in Frontend
+Check `app/src/services/ipAssetLockerService.ts`:
+```typescript
+const API_BASE_URL = 'https://seekerip-production-f87d.up.railway.app/api/ip-asset-locker';
+```
 
-- Base URL: `import.meta.env.VITE_API_URL || 'http://localhost:5000/api'`
-- For local dev, default is `http://localhost:5000/api` (no env needed).
-- For a deployed backend, set in **app/.env**:  
-  `VITE_API_URL=https://your-backend.example.com/api`
-
-Restart the Vite dev server after changing env.
+For local development, change to:
+```typescript
+const API_BASE_URL = 'http://localhost:5000/api/ip-asset-locker';
+```
 
 ## Troubleshooting
 
-### Backend won’t start
+### Issue: Still seeing "<!doctype" errors
 
-- **Database:** Ensure `DATABASE_URL` is correct and PostgreSQL is reachable. Run `npx prisma migrate deploy` and `npx prisma generate`.
-- **Redis:** Queue and scheduler need Redis. Set `REDIS_URL` (or REDIS_USERNAME, PASSWORD, HOST, PORT). Without it, startup may fail when the worker initializes.
+**Solution 1: Check if backend is running**
+```bash
+# In a new terminal, check if port 5000 is listening
+netstat -an | grep 5000  # On Windows
+lsof -i :5000            # On Mac/Linux
+```
 
-### Build errors
+**Solution 2: Rebuild backend**
+```bash
+cd backend
+yarn build
+yarn dev
+```
 
-- Run from `backend/`: `yarn build` uses `tsc -p src/tsconfig.json`. Do not run `tsc` from repo root.
-- If you see “would overwrite input file”, ensure `backend/src/tsconfig.json` has `"exclude": ["node_modules", "dist", ...]` and that `dist` is not under `include`.
+**Solution 3: Check for port conflicts**
+```bash
+# Kill process on port 5000
+taskkill /PID <PID> /F  # Windows
+kill -9 <PID>           # Mac/Linux
+```
 
-### CORS
+### Issue: Backend starts but endpoints return errors
 
-Backend uses `cors({ origin: '*' })`. If the frontend is on another host/port, CORS is already allowed.
+**Check logs:**
+```bash
+# Look for error messages in the console output
+# Common issues:
+# - Missing environment variables
+# - Contract addresses not set
+# - RPC endpoint unreachable
+```
 
-### 404 / HTML instead of JSON
+**Verify environment variables:**
+```bash
+# In backend directory
+cat .env  # Check if all required vars are set
+```
 
-- Confirm backend is running on the port in `VITE_API_URL` (or 5000).
-- Call `GET http://localhost:5000/health` and `GET http://localhost:5000/` to verify.
+### Issue: CORS errors in frontend
 
-## Quick commands
+**Already fixed:** CORS middleware is enabled in both `index.ts` and `app.ts`:
+```typescript
+app.use(cors());
+```
+
+## Files Modified
+
+- `backend/src/index.ts` - Added 404 and error handlers
+- `backend/src/app.ts` - Added IP Asset Locker routes and error handlers
+
+## Next Steps
+
+1. **Start Backend:**
+   ```bash
+   cd backend && yarn dev
+   ```
+
+2. **Verify it's running:**
+   ```bash
+   curl http://localhost:5000/
+   ```
+
+3. **Start Frontend:**
+   ```bash
+   cd app && yarn dev --host
+   ```
+
+4. **Check browser console** for detailed error messages
+
+## Common Error Messages & Solutions
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Backend may not be running` | Backend service not started | Run `yarn dev` in backend |
+| `API Error (404)` | Endpoint doesn't exist | Check route is registered |
+| `API Error (500)` | Server error | Check backend logs for details |
+| `<!doctype` error | HTML response instead of JSON | Backend not running or wrong URL |
+
+## Architecture
+
+```
+Frontend (http://localhost:5173)
+    ↓
+ipAssetLockerService (app/src/services)
+    ↓
+API Calls to Backend
+    ↓
+Backend (http://localhost:5000)
+    ↓
+IP Asset Locker Routes (backend/src/routes/ip-asset-locker.ts)
+    ↓
+IP Asset Locker Service (backend/src/services/ip-asset-locker-service.ts)
+    ↓
+Hedera Network
+```
+
+## Quick Start Command
 
 ```bash
-# Terminal 1: Backend
+# Terminal 1: Start Backend
 cd backend && yarn dev
 
-# Terminal 2: Frontend
+# Terminal 2: Start Frontend
 cd app && yarn dev --host
 ```
 
-Then open: **http://localhost:5173**
-
-## Network
-
-- **Hedera Testnet** – Chain ID 296, RPC `https://testnet.hashio.io/api`, explorer https://hashscan.io/testnet.
-- Payments are in **HBAR** (native). Recipient must be a wallet (EOA) address.
+Then open: `http://localhost:5173`
