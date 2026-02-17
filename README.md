@@ -1,6 +1,37 @@
 # Aluta
 
-Crypto-based subscription management platform on **Hedera testnet**. Create services, subscribe with your wallet, and pay in **HBAR** (native Hedera token).
+🔮 **Aluta** is an IP management and crypto subscription platform on **Hedera testnet**. Create services, subscribe with your wallet, and pay in **HBAR** (native Hedera token).
+
+---
+
+## Project Details
+
+### Project Description
+
+Aluta lets users manage recurring subscriptions and intellectual-property-related services on-chain. Service providers set a cost in HBAR; subscribers connect a Hedera-compatible wallet (e.g. MetaMask), view their HBAR balance, and pay with one click via native HBAR transfer—no intermediary token or facilitator required. The backend records payments, supports auto-pay scheduling with a Redis-backed queue, and exposes analytics and payment history. Built for Hedera testnet (Chain ID 296), Aluta demonstrates DeFi-style recurring value transfer and tokenization of services using the native asset (HBAR).
+
+### Hackathon Track
+
+**DeFi & Tokenization**
+
+### Demo
+
+- **Live demo:** [https://glittery-alpaca-76b271.netlify.app/](https://glittery-alpaca-76b271.netlify.app/)
+- **Demo video:** [https://youtu.be/xI_zSQ7vCgM](https://youtu.be/xI_zSQ7vCgM)
+
+### Tech Stack
+
+| Layer | Technologies |
+|-------|--------------|
+| **Frontend** | React, TypeScript, Vite, thirdweb (wallets + chain), ethers.js, Tailwind CSS |
+| **Backend** | Node.js, Express, TypeScript, Prisma (ORM) |
+| **Database** | PostgreSQL |
+| **Queue / cache** | Redis, Bull |
+| **Blockchain** | Hedera Testnet (EVM), Hashio RPC, HashScan (explorer) |
+| **Payments** | Native HBAR (Hedera), EOA-to-EOA value transfer |
+| **Deployment** | Netlify (frontend), Railway / Docker (backend optional) |
+
+---
 
 ## Overview
 
